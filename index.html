@@ -64,7 +64,6 @@
             ]
         };
 
-        const needDose = ['차단술'];
         const doseOptions = [0.5, 1, 1.5, 2, 2.5, 3];
         const container = document.getElementById('calculator');
         const selections = [];
@@ -79,14 +78,9 @@
                 data[category].map(item => `<option value="${item.code}">${item.code} - ${item.name} (${item.price}원)</option>`).join('');
             div.appendChild(select);
 
-            let dose;
-            if (needDose.includes(category)) {
-                dose = document.createElement('select');
-                dose.innerHTML = doseOptions.map(d => `<option value="${d}">${d}</option>`).join('');
-                div.appendChild(dose);
-            } else {
-                dose = { value: 1 }; // 용량 개념 없는 항목 기본값
-            }
+            const dose = document.createElement('select');
+            dose.innerHTML = doseOptions.map(d => `<option value="${d}">${d}</option>`).join('');
+            div.appendChild(dose);
 
             selections.push({ category, select, dose });
             container.appendChild(div);
@@ -102,13 +96,13 @@
                 const selectedDose = parseFloat(dose.value);
                 if (code) {
                     const item = Object.values(data).flat().find(x => x.code === code);
-                    if (needDose.includes(category)) {
-                        totalDose += selectedDose;
-                    }
+                    totalDose += selectedDose;
+                    const itemPrice = item.price * selectedDose;
+
                     if (category === '비급여금액') {
-                        nonCoveredAmount += item.price;
+                        nonCoveredAmount += itemPrice;
                     } else {
-                        totalAmount += item.price;
+                        totalAmount += itemPrice;
                     }
                 }
             });

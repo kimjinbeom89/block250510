@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>차단술 계산기</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        label, select, input, button { margin: 5px; }
+        h1 { color: #333; }
+        .category-block { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <h1>차단술 계산기</h1>
+    <div id="calculator"></div>
+    <button onclick="calculate()">계산하기</button>
+    <div id="result"></div>
+
+    <script>
+        const data = {
+            '차단술': [
+                {code: 'LA241', name: '대소후두', price: 30530},
+                {code: 'LA247', name: '견갑신경', price: 31150},
+                {code: 'LA248', name: '늑간신경', price: 31130},
+                {code: 'LA251', name: '경신경총', price: 41480},
+                {code: 'LA253', name: '요천골신경총', price: 83500},
+                {code: 'LA272', name: '좌골신경', price: 31150},
+                {code: 'LA273', name: '폐쇄신경', price: 28000},
+                {code: 'LA274', name: '대퇴신경', price: 31180},
+                {code: 'LA275', name: '외측대퇴피신경', price: 29180},
+                {code: 'LA321', name: 'EPI(경추,흉추)', price: 84450},
+                {code: 'LA323', name: 'EPI(요추,천추)', price: 49650},
+                {code: 'LA325', name: 'STEB(경추,흉추)', price: 156980},
+                {code: 'LA326', name: 'STEB(요추,천추)', price: 156980},
+                {code: 'LA346', name: '액와신경', price: 31160},
+                {code: 'LA347', name: '액와하부신경', price: 28000},
+                {code: 'LA352', name: '방척추신경', price: 83500},
+                {code: 'LA354', name: '선택적 신경근', price: 83500},
+                {code: 'LA355', name: '척추후근신경절', price: 83500},
+                {code: 'LA357', name: '척추신경후지', price: 58260},
+                {code: 'LA358', name: '후지내측지', price: 83500},
+                {code: 'LA359', name: '추간관절', price: 87850},
+                {code: 'LA360', name: '천장관절', price: 87850}
+            ],
+            '이학요법료': [
+                {code: 'MM010', name: '표층열', price: 1000},
+                {code: 'MM015', name: '표층(심층동)', price: 500},
+                {code: 'MM020', name: '심층열', price: 1420},
+                {code: 'MM080', name: 'ICT', price: 4420},
+                {code: 'MM085', name: '레이저', price: 6600},
+                {code: 'MM101', name: '단순운동', price: 6330},
+                {code: 'MM190', name: '압박', price: 7250},
+                {code: 'MM200', name: '복합림프', price: 14610}
+            ],
+            '비급여금액': [
+                {code: 'NON10000', name: '비급1만', price: 10000},
+                {code: 'NON20000', name: '비급2만', price: 20000},
+                {code: 'NON30000', name: '비급3만', price: 30000}
+            ],
+            '진찰료': [
+                {code: 'AA154', name: '초진진찰료', price: 18410},
+                {code: 'AA254', name: '재진진찰료', price: 13160},
+                {code: 'AA222', name: '물치재진', price: 4620}
+            ]
+        };
+
+        const needDose = ['차단술'];
+        const doseOptions = [0.5, 1, 1.5, 2, 2.5, 3];
+        const container = document.getElementById('calculator');
+        const selections = [];
+
+        for (let category in data) {
+            const div = document.createElement('div');
+            div.className = 'category-block';
+            div.innerHTML = `<label>${category}:</label>`;
+
+            const select = document.createElement('select');
+            select.innerHTML = '<option value="">없음</option>' +
+                data[category].map(item => `<option value="${item.code}">${item.code} - ${item.name} (${item.price}원)</option>`).join('');
+            div.appendChild(select);
+
+            let dose;
+            if (needDose.includes(category)) {
+                dose = document.createElement('select');
+                dose.innerHTML = doseOptions.map(d => `<option value="${d}">${d}</option>`).join('');
+                div.appendChild(dose);
+            } else {
+                dose = { value: 1 }; // 용량 개념 없는 항목 기본값
+            }
+
+            selections.push({ category, select, dose });
+            container.appendChild(div);
+        }
+
+        function calculate() {
+            let totalDose = 0;
+            let totalAmount = 0;
+            let nonCoveredAmount = 0;
+
+            selections.forEach(({ category, select, dose }) => {
+                const code = select.value;
+                const selectedDose = parseFloat(dose.value);
+                if (code) {
+                    const item = Object.values(data).flat().find(x => x.code === code);
+                    if (needDose.includes(category)) {
+                        totalDose += selectedDose;
+                    }
+                    if (category === '비급여금액') {
+                        nonCoveredAmount += item.price;
+                    } else {
+                        totalAmount += item.price;
+                    }
+                }
+            });
+
+            const copayment = Math.round(totalAmount * 0.3) + nonCoveredAmount;
+
+            document.getElementById('result').innerHTML =
+                `<p>총 투여량: ${totalDose}</p>` +
+                `<p>총 금액 (급여): ${totalAmount.toLocaleString()}원</p>` +
+                `<p>총 금액 (비급여): ${nonCoveredAmount.toLocaleString()}원</p>` +
+                `<p>본인부담금 (급여 30% + 비급여 100%): ${copayment.toLocaleString()}원</p>`;
+        }
+    </script>
+</body>
+</html>

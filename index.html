@@ -6,10 +6,10 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 30px; font-size: 2.4rem; }
         label, select, input, button { margin: 10px; font-size: 2.4rem; }
-        h1 { color: #333; font-size: 1.5rem; }
+        h1 { color: #333; font-size: 2.0rem; }
         select { padding: 15px; width: 150%; max-width: 450px; }
         button { padding: 18px 30px; }
-        .category-block { margin-bottom: 30px; }
+        .category-block { margin-bottom: 22px; }
     </style>
 </head>
 <body>
@@ -44,6 +44,12 @@
                 {code: 'LA359', name: '추간관절', price: 87850},
                 {code: 'LA360', name: '천장관절', price: 87850}
             ],
+            '기타주사료': [
+                {code: 'KK061', name: '신경간내주사', price: 13170},
+                {code: 'KK062', name: '건초내주사', price: 11560},
+                {code: 'KK090', name: '관절강내주사', price: 18050},
+                {code: 'C8020010', name: '관절천자(치료)', price: 23720}
+            ],
             '이학요법료': [
                 {code: 'MM010', name: '표층열', price: 1000},
                 {code: 'MM015', name: '표층(심층동)', price: 500},
@@ -70,7 +76,27 @@
         const container = document.getElementById('calculator');
         const selections = [];
 
-        for (let category in data) {
+        // 차단술1, 차단술2 생성
+        ['차단술1', '차단술2'].forEach((labelName, index) => {
+            const div = document.createElement('div');
+            div.className = 'category-block';
+            div.innerHTML = `<label>${labelName}:</label>`;
+
+            const select = document.createElement('select');
+            select.innerHTML = '<option value="">없음</option>' +
+                data['차단술'].map(item => `<option value="${item.code}">${item.code} - ${item.name} (${item.price}원)</option>`).join('');
+            div.appendChild(select);
+
+            const dose = document.createElement('select');
+            dose.innerHTML = doseOptions.map(d => `<option value="${d}">${d}</option>`).join('');
+            div.appendChild(dose);
+
+            selections.push({ category: '차단술', select, dose });
+            container.appendChild(div);
+        });
+
+        // 나머지 카테고리 추가
+        ['기타주사료', '이학요법료', '비급여금액', '진찰료'].forEach(category => {
             const div = document.createElement('div');
             div.className = 'category-block';
             div.innerHTML = `<label>${category}:</label>`;
@@ -86,7 +112,7 @@
 
             selections.push({ category, select, dose });
             container.appendChild(div);
-        }
+        });
 
         function calculate() {
             let totalDose = 0;
